@@ -1,98 +1,107 @@
 #include <iostream>
+using namespace std;
+
+// Forward declaration
+template<typename T>
+class deque;
+
+// Helper function to print deque contents
+template<typename T>
+void printDeque(const deque<T>& d, const string& name);
 
 // template in C++ allows you to write generic and reusable code. They enable you to creat functions and classes that can operate with any data type without being tied to a specific one.
 template<typename T>
 
 //Implementing Double Ended Queue (Deque) using a dynamic array
-class DequeImplementation {
+class deque {
 private:
     // Index of the first element.
     int head;     
-    // Index of the position AFTER the last element.
+    // index of the position after the last element.
     int tail;     
     // curent number of elements.
     int count;    
-    // current capacity of the array.
-    int capacity; 
-     // Pointer to the dynamically allocated array.
+    // current capaCity of the array.
+    int capaCity;   
+    // Pointer to the dynamically allocated array.
     T* arr;         
     
-    // Doubles the capacity of the array when it's full.
+    // Doubles the capaCity of the array when it's full.
     void resize() {
-        int newCapacity = (capacity == 0) ? 8 : capacity * 2;
-        T* newArr = new T[newCapacity];
+        int newCapacity = (capaCity == 0) ? 8 : capaCity * 2;
+        T* nArr = new T[newCapacity];
 
-        // Copy elements from the old, wrapped array to the new, linear one.
+        // Copy elements 
         for (int i = 0; i < count; ++i) {
-            newArr[i] = arr[(head + i) % capacity];
+            nArr[i] = arr[(head + i) % capaCity];
         }
 
-        delete[] arr; // Free the old memory
+        delete[] arr; 
 
-        // Update state to reflect the new array
-        arr = newArr;
-        capacity = newCapacity;
+        // Update state 
+        arr = nArr;
+        capaCity = newCapacity;
         head = 0;
-        tail = count; // tail is now simply at the end of the elements
+        tail = count; 
     }
 
 public:
     // default constructor
-    // initializes an empty DequeImplementation.
-    DequeImplementation() {  
+    // initializes an empty deque.
+    deque() {  
         arr = nullptr;
         head = 0;
         tail = 0;
         count = 0;
-        capacity = 0;
-        // Start with a small capacity to avoid immediate resizing on first push_back or push_front         
-        resize(); 
+        capaCity = 0;
+    
     }
 
     // parameterized constructor Initializes a deque of length n with default values.
-    DequeImplementation(int n){
+    deque(int n){
         arr = nullptr;
         head = 0;
         tail = n;
         count = n;
-        capacity = n;
+        capaCity = n;
         // initialize array with default values
-        arr = new T[capacity];
+        arr = new T[capaCity];
         for (int i = 0; i < n; ++i) {
             arr[i] = T();
         }
     }
 
     // parameterized constructor Initializes a deque of length n with a specific value x.
-    DequeImplementation(int n, const T& x)  {
+    deque(int n, const T& x)  {
         arr = nullptr;
         head = 0;
         tail = n;
         count = n;
-        capacity = n;
+        capaCity = n;
         // initialize array with value x
-        arr = new T[capacity];
+        arr = new T[capaCity];
         for (int i = 0; i < n; ++i) {
             arr[i] = x;
         }
     }
 
     //  Destructor 
-    ~DequeImplementation() {
-        // Free the dynamically allocated array
+    ~deque() {
+        // Free dynamically allocated array
         delete[] arr;
     }
 
     // append data x at the end of deque
     void push_back(const T& value) {
-        if (count == capacity) {
+        // check if deque is full
+        if (count == capaCity) {
             // If array is full resize it .
             resize();
         }
         // insert value at tail position
         arr[tail] = value;
-        // Move tail forward, wrapping around if necessary
-        tail = (tail + 1) % capacity;
+        // Move tail forward if necessary
+        tail = (tail + 1) % capaCity;
         // increase the count of elements
         count++;
     }
@@ -106,8 +115,8 @@ public:
         }
         // Move tail backward, wrapping around if necessary
         if(tail == 0)
-            tail = capacity - 1;
-        else
+            tail = capaCity - 1;
+        else    
             tail = tail - 1;
         // Decrease the count of elements
         count--;
@@ -115,13 +124,11 @@ public:
 
     // append data x at the beginning of deque
     void push_front(const T& value) {
-        // If array is full, resize it
-        if (count == capacity) {
+        if (count == capaCity) {
             resize();
         }
-        // Move head backward, wrapping around if necessary
         if(head == 0){
-            head = capacity - 1;
+            head = capaCity - 1;
         }else{
             head = head - 1;
         }
@@ -138,7 +145,7 @@ public:
             return;
         }
         // Move head forward, wrapping around if necessary
-        head = (head + 1) % capacity;
+        head = (head + 1) % capaCity;
         // Decrease the count of elements
         count--;
     }
@@ -158,23 +165,28 @@ public:
             // default value if empty
             return T();  
         }
-        // The last element is at the index before tail, handling wrap-around
         if(tail == 0)
-            return arr[capacity - 1];
+            return arr[capaCity - 1];
         else
             return arr[tail - 1];
     }
 
-    // Overloads the [] operator for indexed access.
-    T operator[](int index) const {
-        if (index >= count) {
-            // Index is out of bounds, return default value.
+    // returns the nth element of the deque. Overloads the [] operator for indexed access.
+    T operator[](int n)  {
+        if (empty() || (n >=0 && n >= count)) {
+            //out of bound
             return T();
         }
-        // Calculate the actual array index from the logical DequeImplementation index
-        return arr[(head + index) % capacity];
-    }
-
+        int idx;
+        if(n >= 0){
+            idx = (head + n) % capaCity;
+        }else{
+            //for negative index
+            idx = (head + count + n) % capaCity;
+        }
+        return arr[idx];
+    }       
+    
     // checks if the deque is empty.
     // returns true if deque is empty else returns false.
     bool empty() const {
@@ -189,64 +201,63 @@ public:
 
     //change the size dynamically to new size n.
     void resize(int n) {
-        //If the new size n is smaller than the current size, then keep n elements from the beginning of the deque.
+        //if n lss than current size
         if (n < count) {
             count = n;
-            tail = (head + count) % capacity;
+            tail = (head + count) % capaCity;
         } 
         
-        //If the new size n is greater than the current size of the deque, then insert new elements with the default value of T at the end of the queue.
         else if (n > count) {
-            int elem = n - count;
-            for (int i = 0; i < elem; ++i) {
-                push_back(T());
+            tail = (head + n) % capaCity;
+            count = n;
+            // If new size exceeds current capaCity, resize the array.
+            while (count > capaCity) {
+                resize();
             }
         }
     }
 
     //change the size dynamically to new size n and initialize new elements with value x.
     void resize(int n, const T& x) {
-        //If the new size n is smaller than the current size, then keep n elements from the beginning of the deque.
         if (n < count) {
             count = n;
-            tail = (head + count) % capacity;
+            tail = (head + count) % capaCity;
         } 
         
-        //If the new size n is greater than the current size of the deque, then insert new elements with the value x at the end of the queue.
         else if (n > count) {
-            int elem = n - count;
-            for (int i = 0; i < elem; ++i) {
+            tail = (head + n) % capaCity;
+            count = n;
+            int elm = n - count;
+            for (int i = 0; i < elm; ++i) {
                 push_back(x);
             }
         }
     }
 
-    // change the capacity of deque to n, if n > current capacity otherwise do nothing.
-    void reverse(int n){
-        //do nothing new capacity is not larger.    
-        if(n <= capacity){
-            return
+    // change the capaCity of deque to n, if n > current capaCity otherwise do nothing.
+    void reserve(int n){    
+        if(n <= capaCity){
+            return;
         }
         //create a new array of size n
-        T* newArr = new T[n];
-        // Copy elements from the old, wrapped array to the new, linear one.
+        T* nArr = new T[n];
+        // Copy elements from the old arry
         for (int i = 0; i < count; ++i) {
-            newArr[i] = arr[(head + i) % capacity];             
+            nArr[i] = arr[(head + i) % capaCity];             
         }
 
         delete[] arr; 
-
-        // Update state to reflect the new array
-        arr = newArr;
-        capacity = n;
+        //update the state
+        arr = nArr;
+        capaCity = n;
         head = 0;
-        tail = count; // tail is now simply at the end of the elements
+        tail = count; 
     
     }
 
-    //reduce the capacity of the deque to current size.
+    //reduce the capaCity of the deque to current size.
     void shrink_to_fit(){
-        if(count == capacity){
+        if(count == capaCity){
             //already at fit size
             return;
         }
@@ -256,23 +267,23 @@ public:
         if(newCapacity == 0){
             delete[] arr;
             arr = nullptr;
-            capacity = 0;
+            capaCity = 0;
             head = 0;
             tail = 0;
             return;
         }
 
-        T* newArr = new T[newCapacity];
+        T* nArr = new T[newCapacity];
         //copy from old array to new array
         for (int i = 0; i < count; ++i) {
-            newArr[i] = arr[(head + i) % capacity];
+            nArr[i] = arr[(head + i) % capaCity];
         }
 
         //free old memory
         delete[] arr;
         //update the state
-        arr = newArr;
-        capacity = newCapacity;
+        arr = nArr;
+        capaCity = newCapacity;
         head = 0;
         tail = count; 
     }
@@ -285,20 +296,38 @@ public:
         head = 0;
         tail = 0;
         count = 0;
-        capacity = 0;        
+        capaCity = 0;        
         resize();
     }
 
     //return the current capacity of deque.
     int capacity() const {
-        return capacity;
+        return capaCity;
     }
-
 };
 
 
-int main() {
-    
+template<typename T>
+void printDeque(const deque<T>& d, const string& name) {
+    cout << "--- " << name << " (size: " << d.size() << ", cap: " << d.capacity() << ") ---\n";
+    if (d.empty()) {
+        cout << "[EMPTY]\n";
+    } else {
+        cout << "Front -> ";
+        for(int i = 0; i < d.size(); ++i) {
+             cout << d[i] << " ";
+        }
+        cout << "<- Back\n";
+    }
+    cout << "-------------------------\n";
+}
+
+int main(){ 
+    deque<int> d;
+    d.push_back(1);
+    d.push_back(2);
+
+    printDeque(d, "Initial");
 
     return 0;
 }
