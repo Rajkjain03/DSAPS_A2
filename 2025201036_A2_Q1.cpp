@@ -1,17 +1,12 @@
 #include <iostream>
+#include <cstdlib>   // For rand() 
+#include <ctime>     // For time()
+#include <limits>    // For numeric_limits
 using namespace std;
 
-// Forward declaration
-template<typename T>
-class deque;
-
-// Helper function to print deque contents
-template<typename T>
-void printDeque(const deque<T>& d, const string& name);
 
 // template in C++ allows you to write generic and reusable code. They enable you to creat functions and classes that can operate with any data type without being tied to a specific one.
 template<typename T>
-
 //Implementing Double Ended Queue (Deque) using a dynamic array
 class deque {
 private:
@@ -28,9 +23,13 @@ private:
     
     // Doubles the capaCity of the array when it's full.
     void resize() {
-        int newCapacity = (capaCity == 0) ? 8 : capaCity * 2;
-        T* nArr = new T[newCapacity];
-
+        int newCap;
+        if(capaCity == 0){
+            newCap = 1;
+        }else{
+            newCap = capaCity*2;
+        }
+        T* nArr = new T[newCap];
         // Copy elements 
         for (int i = 0; i < count; ++i) {
             nArr[i] = arr[(head + i) % capaCity];
@@ -40,7 +39,7 @@ private:
 
         // Update state 
         arr = nArr;
-        capaCity = newCapacity;
+        capaCity = newCap;
         head = 0;
         tail = count; 
     }
@@ -54,18 +53,18 @@ public:
         tail = 0;
         count = 0;
         capaCity = 0;
-    
     }
 
     // parameterized constructor Initializes a deque of length n with default values.
     deque(int n){
         arr = nullptr;
         head = 0;
-        tail = n;
+        tail = 0;
         count = n;
         capaCity = n;
         // initialize array with default values
         arr = new T[capaCity];
+        if(n > 0)tail = n;
         for (int i = 0; i < n; ++i) {
             arr[i] = T();
         }
@@ -75,11 +74,12 @@ public:
     deque(int n, const T& x)  {
         arr = nullptr;
         head = 0;
-        tail = n;
+        tail = 0;
         count = n;
         capaCity = n;
         // initialize array with value x
         arr = new T[capaCity];
+        if(n > 0)tail = n;
         for (int i = 0; i < n; ++i) {
             arr[i] = x;
         }
@@ -94,7 +94,7 @@ public:
     // append data x at the end of deque
     void push_back(const T& value) {
         // check if deque is full
-        if (count == capaCity) {
+        if (count == capaCity || arr == nullptr) {
             // If array is full resize it .
             resize();
         }
@@ -124,7 +124,7 @@ public:
 
     // append data x at the beginning of deque
     void push_front(const T& value) {
-        if (count == capaCity) {
+        if (count == capaCity || arr == nullptr ) {
             resize();
         }
         if(head == 0){
@@ -172,8 +172,8 @@ public:
     }
 
     // returns the nth element of the deque. Overloads the [] operator for indexed access.
-    T operator[](int n)  {
-        if (empty() || (n >=0 && n >= count)) {
+    T operator[](int n) const {
+        if (empty() || (n >=0 && n >= count) || (n < 0 && (-n) > count)) {
             //out of bound
             return T();
         }
@@ -185,7 +185,18 @@ public:
             idx = (head + count + n) % capaCity;
         }
         return arr[idx];
-    }       
+    }  
+    
+    T& operator[](int n){
+        int idx;
+        if(n >= 0){
+            idx = (head + n) % capaCity;
+        }else{
+            //for negative index
+            idx = (head + count + n) % capaCity;
+        }
+        return arr[idx];
+    } 
     
     // checks if the deque is empty.
     // returns true if deque is empty else returns false.
@@ -203,16 +214,15 @@ public:
     void resize(int n) {
         //if n lss than current size
         if (n < count) {
-            count = n;
-            tail = (head + count) % capaCity;
-        } 
-        
-        else if (n > count) {
             tail = (head + n) % capaCity;
             count = n;
+            } 
+        
+        else if (n > count) {
+            int elm = n - count;
             // If new size exceeds current capaCity, resize the array.
-            while (count > capaCity) {
-                resize();
+            for (int i = 0; i < elm; ++i) {
+                push_back(T());
             }
         }
     }
@@ -225,8 +235,6 @@ public:
         } 
         
         else if (n > count) {
-            tail = (head + n) % capaCity;
-            count = n;
             int elm = n - count;
             for (int i = 0; i < elm; ++i) {
                 push_back(x);
@@ -262,9 +270,9 @@ public:
             return;
         }
         
-        int newCapacity = count;
+        int newCap = count;
         // if no elemnts, free memory 
-        if(newCapacity == 0){
+        if(newCap == 0){
             delete[] arr;
             arr = nullptr;
             capaCity = 0;
@@ -273,7 +281,7 @@ public:
             return;
         }
 
-        T* nArr = new T[newCapacity];
+        T* nArr = new T[newCap];
         //copy from old array to new array
         for (int i = 0; i < count; ++i) {
             nArr[i] = arr[(head + i) % capaCity];
@@ -283,21 +291,16 @@ public:
         delete[] arr;
         //update the state
         arr = nArr;
-        capaCity = newCapacity;
+        capaCity = newCap;
         head = 0;
         tail = count; 
     }
 
     // remove all elements from the deque 
     void clear(){
-        // Free the dynamically allocated array
-        delete[] arr;
-        arr = nullptr;
         head = 0;
         tail = 0;
-        count = 0;
-        capaCity = 0;        
-        resize();
+        count = 0;    
     }
 
     //return the current capacity of deque.
@@ -306,28 +309,148 @@ public:
     }
 };
 
+//Randomized queue -
+template<typename T>
+class randomizedQueue { 
+    private:
+        deque<T> dq;
+    public:
+     
+        void enqueue(const T &x){
+            dq.push_back(x);
+        }
+
+        T dequeue(){
+            if(dq.empty()){
+                cout << "Queue is empty" << endl;
+                throw out_of_range("Error deque");
+            }
+            int ind = rand() % dq.size();
+            T randomReturn = dq[ind];
+            T lstItem = dq[dq.size() -1 ];
+            //remove the item
+            dq[ind] = dq[lstItem];
+            dq.pop_back();
+            return randomReturn;
+        } 
+
+        T sample(){
+            if(dq.empty()){
+                cout << "Queue is empty" << endl;
+                throw out_of_range("Error sample");
+            }
+            int ind = rand() % dq.size();
+            return dq[ind];
+        }
+};
+
 
 template<typename T>
-void printDeque(const deque<T>& d, const string& name) {
-    cout << "--- " << name << " (size: " << d.size() << ", cap: " << d.capacity() << ") ---\n";
-    if (d.empty()) {
-        cout << "[EMPTY]\n";
-    } else {
-        cout << "Front -> ";
-        for(int i = 0; i < d.size(); ++i) {
-             cout << d[i] << " ";
+void randomizerFun() {
+    RandomizedQueue<T> rq;
+    int n;
+    T val;
+
+    while (true) {
+        cout << "Enter which operation you want to perform"<< endl;
+        cout << "1. enqueue(x): To add the item " << endl;
+        cout << "2. dequeue(): To remove and return a random item " << endl;
+        cout << "3. sample(): To return a random sample " << endl;
+        cout << "0. exit" <<endl;
+        cin >> n;
+
+        if (cin.fail()) {
+            cout << "Invalid input. Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
         }
-        cout << "<- Back\n";
+
+        if (n == 0) {
+            cout << "Returning to data type selection...\n";
+            return; 
+        }
+
+        switch (n) {
+            case 0: 
+                cout << "GG ! BYE." << endl;
+                return 0;
+            case 1:
+                cout << "Enter a value to enqueue: ";
+                cin >> val;
+
+                if (cin.fail()) {
+                    cout << "Invalid input for this data type.\n";
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    break;
+                }
+                rq.enqueue(val);
+                cout << "Enqueued successfully.\n";
+                break;
+            case 2:
+                try {
+                    val = rq.dequeue();
+                    cout << "Dequeued random item: " << val << "\n";
+                } catch (const std::out_of_range& e) {
+                    cout << "Error: " << e.what() << "\n";
+                }
+                break;
+            case 3: 
+                try {
+                    val = rq.sample();
+                    cout << "Sampled random item: " << val << "\n";
+                } catch (const std::out_of_range& e) {
+                    cout << "Error: " << e.what() << "\n";
+                }
+                break;
+            default:
+                cout << "Invalid n. Please try again.\n";
+                break;
+        }
     }
-    cout << "-------------------------\n";
 }
 
-int main(){ 
-    deque<int> d;
-    d.push_back(1);
-    d.push_back(2);
 
-    printDeque(d, "Initial");
+int main(){ 
+    srand(time(0));
+    int n ;
+    while(true){    
+        
+        cout << "Select the data type for the Randomized Queue:\n";
+        cout << "1. Integer (int)\n";
+        cout << "2. Double (double)\n";
+        cout << "3. Character (char)\n";
+        cout << "0. Exit Program\n";
+        cin >> n;   
+
+        if (cin.fail()) {
+            cout << "Invalid input. Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        switch (n) {
+            case 0:
+                cout << "GG ! BYE." << endl;
+                return 0;
+            case 1:
+                randomizerFun<int>();
+                break;
+            case 2:
+                randomizerFun<double>();
+                break;
+            case 3:
+                randomizerFun<char>();
+                break;
+            
+            default:
+                cout << "Invalid data type n. Please try again.\n";
+                break;
+        }
+    }
+    
 
     return 0;
 }
