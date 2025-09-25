@@ -177,25 +177,25 @@ public:
             //out of bound
             return T();
         }
-        int idx;
+        int ind;
         if(n >= 0){
-            idx = (head + n) % capaCity;
+            ind = (head + n) % capaCity;
         }else{
             //for negative index
-            idx = (head + count + n) % capaCity;
+            ind = (head + count + n) % capaCity;
         }
-        return arr[idx];
+        return arr[ind];
     }  
     
     T& operator[](int n){
-        int idx;
+        int ind;
         if(n >= 0){
-            idx = (head + n) % capaCity;
+            ind = (head + n) % capaCity;
         }else{
             //for negative index
-            idx = (head + count + n) % capaCity;
+            ind = (head + count + n) % capaCity;
         }
-        return arr[idx];
+        return arr[ind];
     } 
     
     // checks if the deque is empty.
